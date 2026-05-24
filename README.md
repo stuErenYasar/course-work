@@ -1,6 +1,4 @@
-# course-work
-
-Проект: Digital App & Game Marketplace System
+# Проект: Digital App & Game Marketplace System
 
 Този проект представлява уеб базирана система за дигитален пазар на приложения и игри. В момента е в процес на разработка.
 
