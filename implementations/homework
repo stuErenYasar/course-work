@@ -1,1 +1,372 @@
+openapi: 3.0.0
 
+info:
+  title: Digital App & Game Marketplace System API
+  version: 1.0.0
+  description: >
+    A digital marketplace system where users can browse and purchase apps and games.
+
+servers:
+  - url: https://localhost:5001/api
+    description: Local HTTPS development server
+
+# -------------------------
+# SECURITY (JWT)
+# -------------------------
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    User:
+      type: object
+      required:
+        - username
+        - email
+        - passwordHash
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          maxLength: 100
+        passwordHash:
+          type: string
+          maxLength: 255
+        balance:
+          type: number
+          format: double
+        role:
+          type: string
+          maxLength: 20
+        createdAt:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      required:
+        - title
+        - price
+        - productType
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        price:
+          type: number
+          format: double
+        productType:
+          type: string
+          description: Game or App
+          maxLength: 20
+        releaseDate:
+          type: string
+          format: date-time
+        imageUrl:
+          type: string
+          maxLength: 255
+
+    Purchase:
+      type: object
+      required:
+        - userId
+        - productId
+        - purchaseDate
+        - purchasePrice
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        productId:
+          type: integer
+        purchaseDate:
+          type: string
+          format: date-time
+        purchasePrice:
+          type: number
+          format: double
+        paymentStatus:
+          type: string
+          maxLength: 20
+        downloadCount:
+          type: integer
+
+# -------------------------
+# AUTH ENDPOINTS
+# -------------------------
+paths:
+
+  /auth/register:
+    post:
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  maxLength: 50
+                email:
+                  type: string
+                  maxLength: 100
+                password:
+                  type: string
+                  minLength: 6
+      responses:
+        "200":
+          description: User registered successfully
+
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: JWT token returned
+
+# -------------------------
+# USERS
+# -------------------------
+  /users:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get all users
+      parameters:
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of users
+
+  /users/{id}:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get user by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User details
+
+    put:
+      security:
+        - BearerAuth: []
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User updated
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: Delete user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User deleted
+
+# -------------------------
+# PRODUCTS
+# -------------------------
+  /products:
+    get:
+      summary: Get all products with filtering, sorting and pagination
+      parameters:
+        - name: title
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products
+
+    post:
+      security:
+        - BearerAuth: []
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "200":
+          description: Product created
+
+  /products/{id}:
+    get:
+      summary: Get product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product details
+
+    put:
+      security:
+        - BearerAuth: []
+      summary: Update product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product updated
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: Delete product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product deleted
+
+# -------------------------
+# PURCHASES
+# -------------------------
+  /purchases:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get purchases with filters
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: paymentStatus
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of purchases
+
+    post:
+      security:
+        - BearerAuth: []
+      summary: Create purchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Purchase"
+      responses:
+        "200":
+          description: Purchase created
+
+  /purchases/{id}:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get purchase by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchase details
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: Delete purchase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchase deleted
